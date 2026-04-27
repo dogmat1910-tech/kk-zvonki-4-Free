@@ -247,12 +247,36 @@ def analyze_audio(audio_bytes, filename, api_key):
         tmp.write(audio_bytes)
         tmp_path = tmp.name
 
+    # Список моделей по приоритету: если первая упёрлась в дневной лимит,
+    # автоматически пробуем следующую. У каждой модели свой счётчик квот.
+    model_chain = [
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+    ]
+
     try:
         audio_file = genai.upload_file(path=tmp_path)
-        model = genai.GenerativeModel("gemini-2.5-flash")
         prompt = PROMPT_TEMPLATE.format(checklist=CHECKLIST)
-        response = model.generate_content([prompt, audio_file])
-        text = response.text
+
+        last_error = None
+        text = None
+        for model_name in model_chain:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content([prompt, audio_file])
+                text = response.text
+                break
+            except Exception as e:
+                # Если 429 (квота) или 503 (сервер) — пробуем следующую модель
+                msg = str(e)
+                if "429" in msg or "quota" in msg.lower() or "503" in msg:
+                    last_error = e
+                    continue
+                # Иные ошибки — пробрасываем сразу
+                raise
+        if text is None:
+            raise last_error or RuntimeError("Все модели исчерпаны")
     finally:
         os.unlink(tmp_path)
 
