@@ -53,12 +53,7 @@ with st.sidebar:
             st.warning("⚠️ Введите API-ключ для работы ИИ")
 
     st.divider()
-    st.markdown(
-        "<div style='font-size:11px;color:#64748B'>Анализ через Google Gemini.<br>"
-        "Free tier: ~20 звонков/день.<br>"
-        "Данные хранятся локально.</div>",
-        unsafe_allow_html=True,
-    )
+    st.caption("Анализ через Google Gemini. Free tier: ~20 звонков/день. Данные хранятся локально.")
 
 # ── Главная страница ───────────────────────────────────────────────────────
 st.title("🎯 КК ИИ — Контроль качества звонков")
