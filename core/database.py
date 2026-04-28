@@ -408,7 +408,7 @@ def init_db():
 
 def get_teams() -> pd.DataFrame:
     conn = get_conn()
-    df = pd.read_sql("SELECT * FROM teams ORDER BY name", conn)
+    df = pd.read_sql_query("SELECT * FROM teams ORDER BY name", conn)
     conn.close()
     return df
 
@@ -424,7 +424,7 @@ def get_users(role: Optional[str] = None, team_id: Optional[int] = None) -> pd.D
         q += " AND u.team_id=?"
         params.append(team_id)
     q += " ORDER BY u.name"
-    df = pd.read_sql(q, conn, params=params)
+    df = pd.read_sql_query(q, conn, params=params)
     conn.close()
     return df
 
@@ -521,7 +521,7 @@ def get_calls(manager_id: Optional[int] = None, team_id: Optional[int] = None,
         q += " AND c.team_id=?"
         params.append(team_id)
     q += f" ORDER BY c.uploaded_at DESC LIMIT {limit}"
-    df = pd.read_sql(q, conn, params=params)
+    df = pd.read_sql_query(q, conn, params=params)
     conn.close()
     return df
 
@@ -798,7 +798,7 @@ def get_checklist_rules(call_type: Optional[str] = None, active_only: bool = Tru
         q += " AND (call_type='all' OR call_type LIKE ?)"
         params.append(f"%{call_type}%")
     q += " ORDER BY sales_stage, weight DESC"
-    df = pd.read_sql(q, conn, params=params)
+    df = pd.read_sql_query(q, conn, params=params)
     conn.close()
     return df
 
@@ -844,7 +844,7 @@ def upsert_checklist_rule(data: dict) -> int:
 
 def get_stage_weights(call_type: str) -> pd.DataFrame:
     conn = get_conn()
-    df = pd.read_sql(
+    df = pd.read_sql_query(
         "SELECT * FROM stage_weights WHERE call_type=? ORDER BY stage_code",
         conn, params=(call_type,)
     )
@@ -941,7 +941,7 @@ def get_trend_data(metric: str = "qa_score", days: int = 30,
         GROUP BY DATE(c.uploaded_at)
         ORDER BY date
     """
-    df = pd.read_sql(q, conn, params=params)
+    df = pd.read_sql_query(q, conn, params=params)
     conn.close()
     return df
 
@@ -966,7 +966,7 @@ def get_manager_stats(days: int = 30) -> pd.DataFrame:
         GROUP BY u.id, u.name, t.name
         ORDER BY avg_qa_score DESC
     """
-    df = pd.read_sql(q, conn)
+    df = pd.read_sql_query(q, conn)
     conn.close()
     return df
 
@@ -984,7 +984,7 @@ def get_stage_heatmap(days: int = 30) -> pd.DataFrame:
         GROUP BY u.name, sss.stage_name
         ORDER BY u.name, sss.stage_name
     """
-    df = pd.read_sql(q, conn)
+    df = pd.read_sql_query(q, conn)
     conn.close()
     return df
 
@@ -1002,7 +1002,7 @@ def get_error_stats(days: int = 30) -> pd.DataFrame:
         ORDER BY count DESC
         LIMIT 30
     """
-    df = pd.read_sql(q, conn)
+    df = pd.read_sql_query(q, conn)
     conn.close()
     return df
 
@@ -1028,7 +1028,7 @@ def get_phrase_library(phrase_type: Optional[str] = None, manager_id: Optional[i
         q += " AND pl.sales_stage=?"
         params.append(stage)
     q += f" ORDER BY pl.impact_score DESC LIMIT {limit}"
-    df = pd.read_sql(q, conn, params=params)
+    df = pd.read_sql_query(q, conn, params=params)
     conn.close()
     return df
 
@@ -1054,14 +1054,14 @@ def get_recommendations(level: Optional[str] = None, manager_id: Optional[int] =
         q += " AND r.priority=?"
         params.append(priority)
     q += " ORDER BY r.created_at DESC"
-    df = pd.read_sql(q, conn, params=params)
+    df = pd.read_sql_query(q, conn, params=params)
     conn.close()
     return df
 
 
 def get_trainings() -> pd.DataFrame:
     conn = get_conn()
-    df = pd.read_sql(
+    df = pd.read_sql_query(
         """SELECT tr.*, u.name as manager_name, t.name as team_name
            FROM training_recommendations tr
            LEFT JOIN users u ON tr.manager_id=u.id
